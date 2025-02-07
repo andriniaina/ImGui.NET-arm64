@@ -5,20 +5,15 @@ using System.Numerics;
 using ImPlotNET;
 using System.Runtime.CompilerServices;
 using TestDotNetStandardLib;
-using Veldrid;
-using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
 
+using SDL2;
 using static ImGuiNET.ImGuiNative;
+using System.Security.Principal;
 
 namespace ImGuiNET
 {
     class Program
     {
-        private static Sdl2Window _window;
-        private static GraphicsDevice _gd;
-        private static CommandList _cl;
-        private static ImGuiController _controller;
         // private static MemoryEditor _memoryEditor;
 
         // UI state
@@ -37,50 +32,80 @@ namespace ImGuiNET
 
         static void Main(string[] args)
         {
-            // Create window, GraphicsDevice, and all resources necessary for the demo.
-            VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
-                new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true),
-                out _window,
-                out _gd);
-            _window.Resized += () =>
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
             {
-                _gd.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
-                _controller.WindowResized(_window.Width, _window.Height);
-            };
-            _cl = _gd.ResourceFactory.CreateCommandList();
-            _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
-            // _memoryEditor = new MemoryEditor();
-            Random random = new Random();
-            _memoryEditorData = Enumerable.Range(0, 1024).Select(i => (byte)random.Next(255)).ToArray();
-
-            var stopwatch = Stopwatch.StartNew();
-            float deltaTime = 0f;
-            // Main application loop
-            while (_window.Exists)
+                Console.WriteLine("KO SDL could not be initialized!"); return;
+            }
+            Console.WriteLine("Very good");
+            var window = SDL.SDL_CreateWindow("Basic C SDL project",
+                                          SDL.SDL_WINDOWPOS_UNDEFINED,
+                                          SDL.SDL_WINDOWPOS_UNDEFINED,
+                                          1280, 720,
+                                          SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+            if (window == 0)
             {
-                deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
-                stopwatch.Restart();
-                InputSnapshot snapshot = _window.PumpEvents();
-                if (!_window.Exists) { break; }
-                _controller.Update(deltaTime, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
-
-                SubmitUI();
-
-                _cl.Begin();
-                _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);
-                _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, 1f));
-                _controller.Render(_gd, _cl);
-                _cl.End();
-                _gd.SubmitCommands(_cl);
-                _gd.SwapBuffers(_gd.MainSwapchain);
+                Console.WriteLine(" Window could not be created!\n SDL_Error: %s\n", SDL.SDL_GetError());
             }
 
-            // Clean up Veldrid resources
-            _gd.WaitForIdle();
-            _controller.Dispose();
-            _cl.Dispose();
-            _gd.Dispose();
+            // Create renderer
+            var renderer = SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
+            if (renderer == 0)
+                Console.WriteLine("Renderer could not be created!\n SDL_Error: %s\n", SDL.SDL_GetError());
+            try
+            {
+                const int SCREEN_WIDTH = 1280;
+                const int SCREEN_HEIGHT = 720;
+
+                // Declare rect of square
+                var w = Math.Min(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+                var h = Math.Min(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+                var squareRect = new SDL.SDL_Rect()
+                {
+                    w = w,
+                    h = h,
+                    x = SCREEN_WIDTH / 2 - w / 2,
+                    y = SCREEN_HEIGHT / 2 - h / 2
+                };
+
+                // Event loop
+                while (true)
+                {
+                    // Wait indefinitely for the next available event
+                    SDL.SDL_WaitEvent(out var e);
+
+                    // User requests quit
+                    if (e.type == SDL.SDL_EventType.SDL_QUIT)
+                        break;
+
+                    // Initialize renderer color white for the background
+                    SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+                    // Clear screen
+                    SDL.SDL_RenderClear(renderer);
+
+                    // Set renderer color red to draw the square
+                    SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+
+                    // Draw filled square
+                    SDL.SDL_RenderFillRect(renderer, ref squareRect);
+
+                    // Update screen
+                    SDL.SDL_RenderPresent(renderer);
+                }
+            }
+            finally
+            {
+                Console.WriteLine("Destroying");
+                // Destroy renderer
+                if (renderer != 0)
+                    SDL.SDL_DestroyRenderer(renderer);
+
+                // Destroy window
+                if (window != 0)
+                    SDL.SDL_DestroyWindow(window);
+                SDL.SDL_Quit();
+                Console.WriteLine("Exit success");
+            }
         }
 
         private static unsafe void SubmitUI()
@@ -95,7 +120,7 @@ namespace ImGuiNET
                 ImGui.Text(string.Empty);
                 ImGui.Text("Hello, world!");                                        // Display some text (you can use a format string too)
                 ImGui.SliderFloat("float", ref _f, 0, 1, _f.ToString("0.000"));  // Edit 1 float using a slider from 0.0f to 1.0f    
-                //ImGui.ColorEdit3("clear color", ref _clearColor);                   // Edit 3 floats representing a color
+                                                                                 //ImGui.ColorEdit3("clear color", ref _clearColor);                   // Edit 3 floats representing a color
 
                 ImGui.Text($"Mouse position: {ImGui.GetMousePos()}");
 
@@ -131,7 +156,7 @@ namespace ImGuiNET
                 ImGui.SetNextWindowPos(new Vector2(650, 20), ImGuiCond.FirstUseEver);
                 ImGui.ShowDemoWindow(ref _showImGuiDemoWindow);
             }
-            
+
             if (ImGui.TreeNode("Tabs"))
             {
                 if (ImGui.TreeNode("Basic"))
@@ -209,21 +234,21 @@ namespace ImGuiNET
                 ImGui.Text("Memory editor currently supported.");
                 // _memoryEditor.Draw("Memory Editor", _memoryEditorData, _memoryEditorData.Length);
             }
-            
+
             // ReadOnlySpan<char> and .NET Standard 2.0 tests
             TestStringParameterOnDotNetStandard.Text(); // String overloads should always be available.
-            
+
             // On .NET Standard 2.1 or greater, you can use ReadOnlySpan<char> instead of string to prevent allocations.
             long allocBytesStringStart = GC.GetAllocatedBytesForCurrentThread();
             ImGui.Text($"Hello, world {Random.Shared.Next(100)}!");
             long allocBytesStringEnd = GC.GetAllocatedBytesForCurrentThread() - allocBytesStringStart;
             Console.WriteLine("GC (string): " + allocBytesStringEnd);
-                
+
             long allocBytesSpanStart = GC.GetAllocatedBytesForCurrentThread();
             ImGui.Text($"Hello, world {Random.Shared.Next(100)}!".AsSpan()); // Note that this call will STILL allocate memory due to string interpolation, but you can prevent that from happening by using an InterpolatedStringHandler.
             long allocBytesSpanEnd = GC.GetAllocatedBytesForCurrentThread() - allocBytesSpanStart;
             Console.WriteLine("GC (span): " + allocBytesSpanEnd);
-            
+
             ImGui.Text("Empty span:");
             ImGui.SameLine();
             ImGui.GetWindowDrawList().AddText(ImGui.GetCursorScreenPos(), uint.MaxValue, ReadOnlySpan<char>.Empty);

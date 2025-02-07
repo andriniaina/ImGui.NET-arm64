@@ -263,3 +263,5 @@ deps/
 
 # VS Launch
 launchSettings.json
+bin
+bin-arm64
