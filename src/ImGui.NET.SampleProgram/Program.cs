@@ -53,6 +53,8 @@ namespace ImGuiNET
                 Console.WriteLine("Renderer could not be created!\n SDL_Error: %s\n", SDL.SDL_GetError());
             try
             {
+                // https://github.com/ocornut/imgui/blob/master/examples/example_sdl2_sdlrenderer2/main.cpp
+
                 const int SCREEN_WIDTH = 1280;
                 const int SCREEN_HEIGHT = 720;
 
@@ -66,30 +68,55 @@ namespace ImGuiNET
                     x = SCREEN_WIDTH / 2 - w / 2,
                     y = SCREEN_HEIGHT / 2 - h / 2
                 };
+                ImGui.CreateContext();
+                var io = ImGui.GetIO();
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad;
+                io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
 
+
+                // Setup Platform/Renderer backends
+                ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+                ImGui_ImplSDLRenderer2_Init(renderer);
+
+                var _scaleFactor = Vector2.One;
+                io.DisplaySize = new Vector2(
+                    SCREEN_WIDTH / _scaleFactor.X,
+                    SCREEN_HEIGHT / _scaleFactor.Y);
+                io.DisplayFramebufferScale = _scaleFactor;
+                io.DeltaTime = 1f / 60f; // DeltaTime is in seconds.
+                var show_demo_window = true;
+                var done = false;
                 // Event loop
-                while (true)
+                while (!done)
                 {
                     // Wait indefinitely for the next available event
-                    SDL.SDL_WaitEvent(out var e);
+                    int has_events;
+                    do
+                    {
+                        // TODO: wait event???
+                        has_events = SDL.SDL_PollEvent(out var e);
+                        if (has_events != 0)
+                        {
+                            ImGui_ImplSDL2_ProcessEvent(ref e);
+                            if (e.type == SDL.SDL_EventType.SDL_QUIT)
+                                return;// TODO done = true;
+                            if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL.SDL_GetWindowID(window))
+                                return;// TODO done = true;
+                        }
+                    } while (has_events != 0);
 
-                    // User requests quit
-                    if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                        break;
 
-                    // Initialize renderer color white for the background
-                    SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                    ImGui_ImplSDLRenderer2_NewFrame();
+                    ImGui_ImplSDL2_NewFrame();
+                    ImGui.NewFrame();
+                    ImGui.ShowDemoWindow(ref show_demo_window);
 
-                    // Clear screen
+                    ImGui.Render();
+                    SDL.SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.X, io.DisplayFramebufferScale.Y);
+                    //SDL. SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
+                    SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
                     SDL.SDL_RenderClear(renderer);
-
-                    // Set renderer color red to draw the square
-                    SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-
-                    // Draw filled square
-                    SDL.SDL_RenderFillRect(renderer, ref squareRect);
-
-                    // Update screen
+                    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui.GetDrawData(), renderer);
                     SDL.SDL_RenderPresent(renderer);
                 }
             }
