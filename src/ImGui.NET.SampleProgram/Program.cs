@@ -69,12 +69,12 @@ namespace ImGuiNET
                     y = SCREEN_HEIGHT / 2 - h / 2
                 };
                 ImGui.CreateContext();
+                ImGui.GetCurrentContext();
                 var io = ImGui.GetIO();
                 io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad;
                 io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
 
 
-                // Setup Platform/Renderer backends
                 ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
                 ImGui_ImplSDLRenderer2_Init(renderer);
 
