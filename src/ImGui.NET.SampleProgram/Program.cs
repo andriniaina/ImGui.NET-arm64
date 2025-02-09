@@ -32,7 +32,7 @@ namespace ImGuiNET
 
         static void Main(string[] args)
         {
-            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
                 Console.WriteLine("KO SDL could not be initialized!"); return;
             }
@@ -84,6 +84,9 @@ namespace ImGuiNET
                     SCREEN_HEIGHT / _scaleFactor.Y);
                 io.DisplayFramebufferScale = _scaleFactor;
                 io.DeltaTime = 1f / 60f; // DeltaTime is in seconds.
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/munro/Munro-2LYe.ttf", 38);
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/prompt/Prompt-Medium.ttf", 38);
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/roboto/Roboto-Regular.ttf", 38);
                 var show_demo_window = true;
                 var done = false;
                 // Event loop
@@ -102,6 +105,22 @@ namespace ImGuiNET
                                 return;// TODO done = true;
                             if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL.SDL_GetWindowID(window))
                                 return;// TODO done = true;
+                                /*
+                            if (e.type == SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP)
+                            {
+                                io.AddKeyEvent(ImGuiKey.DownArrow, true);
+                            }
+
+                            if (e.type == SDL.SDL_EventType.SDL_KEYUP || e.type ==SDL.SDL_EventType.SDL_JOYBUTTONUP || e.type==SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP)
+                            {
+                                System.Console.WriteLine(e.type);
+                                System.Console.WriteLine(e.jhat.hat);
+                                System.Console.WriteLine(e.jhat.hatValue);
+                                System.Console.WriteLine(e.jhat.type);
+                                System.Console.WriteLine(e.jbutton.button);
+                                System.Console.WriteLine(e.cbutton.button);
+                            }
+                            */
                         }
                     } while (has_events != 0);
 
@@ -109,11 +128,10 @@ namespace ImGuiNET
                     ImGui_ImplSDLRenderer2_NewFrame();
                     ImGui_ImplSDL2_NewFrame();
                     ImGui.NewFrame();
-                    ImGui.ShowDemoWindow(ref show_demo_window);
+                    SubmitUI();
 
                     ImGui.Render();
                     SDL.SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.X, io.DisplayFramebufferScale.Y);
-                    //SDL. SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
                     SDL.SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
                     SDL.SDL_RenderClear(renderer);
                     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui.GetDrawData(), renderer);
