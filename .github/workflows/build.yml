@@ -36,7 +36,7 @@ jobs:
       shell: bash
       run: |
         echo "Running CodeGenerator"
-        bin/Release/CodeGenerator/net8.0/CodeGenerator.exe "src/ImGui.NET/Generated"
+        bin/Release/CodeGenerator/net9.0/CodeGenerator.exe "src/ImGui.NET/Generated"
         git status -s | findstr . && echo "ERROR: CodeGenerator is not executed, please execute it." && exit 1 || exit 0
 
     - name: Publish to nuget.org

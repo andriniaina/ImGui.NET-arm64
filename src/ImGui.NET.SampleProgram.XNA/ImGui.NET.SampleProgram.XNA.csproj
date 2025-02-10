@@ -5,7 +5,7 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AssemblyName>ImGuiNET.SampleProgram.XNA</AssemblyName>
         <RootNamespace>ImGuiNET.SampleProgram.XNA</RootNamespace>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <OutputType>Exe</OutputType>
 
     <PublishAot>true</PublishAot>
@@ -19,7 +19,7 @@
     <ItemGroup>
         <Content Include="$(RepositoryRootDirectory)/deps/cimgui/win-x64/cimgui.dll" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="$(RepositoryRootDirectory)/deps/cimgui/osx/cimgui.dylib" CopyToOutputDirectory="PreserveNewest" Link="lib%(Filename)%(Extension)" />
-        <Content Include="$(RepositoryRootDirectory)/deps/cimgui/linux-x64/cimgui.so" CopyToOutputDirectory="PreserveNewest" Link="lib%(Filename)%(Extension)" />
+        <Content Include="$(RepositoryRootDirectory)/deps/cimgui/linux-all/*" CopyToOutputDirectory="Always" />
     </ItemGroup>
 
     <ItemGroup>

@@ -32,6 +32,7 @@ namespace ImGuiNET
 
         static void Main(string[] args)
         {
+            ImGui.InitLibraryResolver();
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
                 Console.WriteLine("KO SDL could not be initialized!"); return;
@@ -61,13 +62,6 @@ namespace ImGuiNET
                 // Declare rect of square
                 var w = Math.Min(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
                 var h = Math.Min(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
-                var squareRect = new SDL.SDL_Rect()
-                {
-                    w = w,
-                    h = h,
-                    x = SCREEN_WIDTH / 2 - w / 2,
-                    y = SCREEN_HEIGHT / 2 - h / 2
-                };
                 ImGui.CreateContext();
                 ImGui.GetCurrentContext();
                 var io = ImGui.GetIO();
@@ -84,9 +78,9 @@ namespace ImGuiNET
                     SCREEN_HEIGHT / _scaleFactor.Y);
                 io.DisplayFramebufferScale = _scaleFactor;
                 io.DeltaTime = 1f / 60f; // DeltaTime is in seconds.
-                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/munro/Munro-2LYe.ttf", 38);
-                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/prompt/Prompt-Medium.ttf", 38);
-                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/roboto/Roboto-Regular.ttf", 38);
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/munro/Munro-2LYe.ttf", 36);
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/prompt/Prompt-Medium.ttf", 36);
+                io.Fonts.AddFontFromFileTTF($"{AppContext.BaseDirectory}/fonts/roboto/Roboto-Regular.ttf", 36);
                 var show_demo_window = true;
                 var done = false;
                 // Event loop
@@ -105,22 +99,6 @@ namespace ImGuiNET
                                 return;// TODO done = true;
                             if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL.SDL_GetWindowID(window))
                                 return;// TODO done = true;
-                                /*
-                            if (e.type == SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP)
-                            {
-                                io.AddKeyEvent(ImGuiKey.DownArrow, true);
-                            }
-
-                            if (e.type == SDL.SDL_EventType.SDL_KEYUP || e.type ==SDL.SDL_EventType.SDL_JOYBUTTONUP || e.type==SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP)
-                            {
-                                System.Console.WriteLine(e.type);
-                                System.Console.WriteLine(e.jhat.hat);
-                                System.Console.WriteLine(e.jhat.hatValue);
-                                System.Console.WriteLine(e.jhat.type);
-                                System.Console.WriteLine(e.jbutton.button);
-                                System.Console.WriteLine(e.cbutton.button);
-                            }
-                            */
                         }
                     } while (has_events != 0);
 
@@ -287,12 +265,12 @@ namespace ImGuiNET
             long allocBytesStringStart = GC.GetAllocatedBytesForCurrentThread();
             ImGui.Text($"Hello, world {Random.Shared.Next(100)}!");
             long allocBytesStringEnd = GC.GetAllocatedBytesForCurrentThread() - allocBytesStringStart;
-            Console.WriteLine("GC (string): " + allocBytesStringEnd);
+            //Console.WriteLine("GC (string): " + allocBytesStringEnd);
 
             long allocBytesSpanStart = GC.GetAllocatedBytesForCurrentThread();
             ImGui.Text($"Hello, world {Random.Shared.Next(100)}!".AsSpan()); // Note that this call will STILL allocate memory due to string interpolation, but you can prevent that from happening by using an InterpolatedStringHandler.
             long allocBytesSpanEnd = GC.GetAllocatedBytesForCurrentThread() - allocBytesSpanStart;
-            Console.WriteLine("GC (span): " + allocBytesSpanEnd);
+            //Console.WriteLine("GC (span): " + allocBytesSpanEnd);
 
             ImGui.Text("Empty span:");
             ImGui.SameLine();

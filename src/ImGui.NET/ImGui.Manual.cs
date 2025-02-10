@@ -1,12 +1,33 @@
 ﻿using System;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ImGuiNET
 {
     public static unsafe partial class ImGui
     {
+        public static void InitLibraryResolver()
+        {
+           NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+        }
+        private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+        {
+            var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
+            {
+                var arch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
+                if (libraryName.Contains("cimgui") && arch == Architecture.Arm64)
+                {
+                    return NativeLibrary.Load($"{libraryName}-arm64", assembly, searchPath);
+                }
+            }
+
+            // Otherwise, fallback to default import resolver.
+            return IntPtr.Zero;
+        }
         public static bool InputText(
             string label,
             byte[] buf,
@@ -385,7 +406,7 @@ namespace ImGuiNET
             bool hideTextAfterDoubleHash = false,
             float wrapWidth = -1.0f)
         {
-            return CalcTextSize(text.Substring(start, length ?? text.Length-start), hideTextAfterDoubleHash, wrapWidth);
+            return CalcTextSize(text.Substring(start, length ?? text.Length - start), hideTextAfterDoubleHash, wrapWidth);
         }
 
         public static bool InputText(
