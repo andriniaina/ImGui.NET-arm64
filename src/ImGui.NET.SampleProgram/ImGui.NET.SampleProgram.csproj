@@ -28,9 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(RepositoryRootDirectory)/deps/cimgui/win-x64/cimgui.dll" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(RepositoryRootDirectory)/deps/cimgui/osx/cimgui.dylib" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(RepositoryRootDirectory)/deps/cimgui/linux-all/*" CopyToOutputDirectory="Always" />
     <Content Include="fonts/prompt/Prompt-Medium.ttf" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="fonts/roboto/Roboto-Regular.ttf" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="fonts/munro/Munro-2LYe.ttf" CopyToOutputDirectory="PreserveNewest" />
